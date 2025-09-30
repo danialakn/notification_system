@@ -1,0 +1,2 @@
+SECRET_KEY="django-insecure-2jwbvt7r+h32-+w+lm3)sfxh@63vvo=wjkxh)xr^&-7i+$$&=#"
+INTERNAL_SERVICE_KEY=48c7163b58df6718eda527501016290040383237bcf5fe0ee091e568c850c924

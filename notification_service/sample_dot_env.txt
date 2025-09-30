@@ -1,0 +1,26 @@
+# Database
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=notif
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+
+#Auth_Service
+INTERNAL_SERVICE_KEY=48c7163b58df6718eda527501016290040383237bcf5fe0ee091e568c850c924
+AUTH_SERVICE_ALL_USER=http://localhost:8000/accounts/api/internal/all-user-ids/
+AUTH_SERVICE_VALIDATE_URL=http://localhost:8000/accounts/api/internal/token/validate/
+AUTH_SERVICE_LIST_USER=http://localhost:8000/accounts/api/internal/list-user-ids/
+
+
+# RabbitMQ
+RABBITMQ_USER=daniyal
+RABBITMQ_PASS=123
+RABBITMQ_HOST=localhost
+RABBITMQ_PORT=5672
+RABBITMQ_VHOST=/
+
+# Celery
+CELERY_BACKEND=rpc://
+CELERY_INCLUDE=tasks.notif_tasks
+CELERY_QUEUE=notif_save_queue
+CELERY_APP_NAME=notif_app

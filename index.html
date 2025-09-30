@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Notification Service Tester</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 800px; margin-bottom: 20px; }
+        h1, h2 { color: #333; }
+        input[type="text"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
+        button:disabled { background-color: #aaa; cursor: not-allowed; }
+        button.disconnect { background-color: #dc3545; }
+        #messages { background-color: #2b2b2b; color: #f0f0f0; border-radius: 4px; padding: 15px; height: 400px; overflow-y: scroll; white-space: pre-wrap; font-family: "SF Mono", "Fira Code", monospace; font-size: 14px; line-height: 1.6; }
+        .log { margin-bottom: 8px; }
+        .log-info { color: #87ceeb; } /* Sky Blue */
+        .log-error { color: #f08080; } /* Light Coral */
+        .log-notif { color: #98fb98; } /* Pale Green */
+        .log-pong { color: #ffd700; } /* Gold */
+    </style>
+</head>
+<body>
+
+    <h1>Notification Service Tester</h1>
+
+    <div class="container">
+        <h2>Connection</h2>
+        <label for="userId">User ID:</label>
+        <input type="text" id="userId" placeholder="Enter the User ID to connect as (e.g., 1)">
+        
+        <label for="jwtToken">JWT Access Token:</label>
+        <input type="text" id="jwtToken" placeholder="Paste the JWT access token from your Auth service">
+        
+        <button id="connectBtn">Connect</button>
+        <button id="disconnectBtn" class="disconnect" disabled>Disconnect</button>
+    </div>
+
+    <div class="container">
+        <h2>Actions</h2>
+        <button id="pingBtn" disabled>Send Ping</button>
+    </div>
+
+    <div class="container">
+        <h2>Messages Log</h2>
+        <div id="messages"></div>
+    </div>
+
+<script>
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    const pingBtn = document.getElementById('pingBtn');
+    const userIdInput = document.getElementById('userId');
+    const jwtTokenInput = document.getElementById('jwtToken');
+    const messagesDiv = document.getElementById('messages');
+
+    let ws = null;
+
+    function log(message, type = 'info') {
+        const p = document.createElement('p');
+        p.className = `log log-${type}`;
+        const timestamp = new Date().toLocaleTimeString();
+        p.textContent = `[${timestamp}] ${message}`;
+        messagesDiv.appendChild(p);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    connectBtn.onclick = function() {
+        const userId = userIdInput.value;
+        const token = jwtTokenInput.value;
+
+        if (!userId || !token) {
+            log('User ID and JWT Token are required!', 'error');
+            return;
+        }
+
+        if (ws) {
+            log('Already connected.', 'error');
+            return;
+        }
+
+        const url = `ws://localhost:8001/notif/${userId}?token=${token}`;
+; // Change the host/port if needed
+        ws = new WebSocket(url);
+        log(`Attempting to connect to ${url}...`);
+
+        ws.onopen = function(event) {
+            log('Connection successful!', 'info');
+            connectBtn.disabled = true;
+            disconnectBtn.disabled = false;
+            pingBtn.disabled = false;
+        };
+
+        ws.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                const messageType = data.type === 'pong' ? 'pong' : 'notif';
+                log(`Received: ${event.data}`, messageType);
+            } catch (e) {
+                log(`Received raw text: ${event.data}`, 'info');
+            }
+        };
+
+        ws.onclose = function(event) {
+            log(`Connection closed. Code: ${event.code}, Reason: ${event.reason}`, 'error');
+            ws = null;
+            connectBtn.disabled = false;
+            disconnectBtn.disabled = true;
+            pingBtn.disabled = true;
+        };
+
+        ws.onerror = function(event) {
+            log('An error occurred with the WebSocket connection.', 'error');
+            console.error('WebSocket Error:', event);
+        };
+    };
+
+    disconnectBtn.onclick = function() {
+        if (ws) {
+            log('Disconnecting...', 'info');
+            ws.close();
+        }
+    };
+
+    pingBtn.onclick = function() {
+        if (ws) {
+            const pingMessage = JSON.stringify({ action: 'ping' });
+            log(`Sending: ${pingMessage}`, 'info');
+            ws.send(pingMessage);
+        }
+    };
+</script>
+
+</body>
+</html>
