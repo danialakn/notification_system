@@ -17,29 +17,7 @@ This project is composed of two primary, decoupled microservices:
 Communication between services is handled via **internal REST APIs** and coordinated asynchronously with a ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=flat\&logo=rabbitmq\&logoColor=white) **RabbitMQ message broker**, ensuring resilience and horizontal scalability. User authentication for WebSocket connections is centralized through a ![JWT](https://img.shields.io/badge/JWT-black?style=flat\&logo=jsonwebtokens\&logoColor=white) **custom JWT validation** endpoint on the Auth Service.
 
 ```mermaid
-graph TD
-    subgraph Client
-        Browser -- "(1) Connect WebSocket" --> NS;
-    end
 
-    subgraph System
-        AS[Auth Service <br> (Django)]
-        NS[Notification Service <br> (FastAPI)]
-        RMQ[RabbitMQ <br> Broker]
-    end
-
-    NS -- "(2) Validate Token via Internal API" --> AS;
-    AS -- "(3) Return User Payload (ID, Role)" --> NS;
-    NS -- "(4) Establish Persistent Connection" --> Browser;
-
-    style AS fill:#092E20,stroke:#2BA977,stroke-width:2px,color:#fff
-    style NS fill:#005F5F,stroke:#009485,stroke-width:2px,color:#fff
-    style RMQ fill:#FF6600,stroke:#E15A00,stroke-width:2px,color:#fff
-
-    ExternalService[Another Service / Admin] -- "(A) POST Notification" --> NS;
-    NS -- "(B) Publish to RabbitMQ" --> RMQ;
-    RMQ -- "(C) Message Delivered to Consumers" --> NS;
-    NS -- "(D) Push to Client via WebSocket" --> Browser;
 ```
 
 ---
